@@ -169,7 +169,7 @@ export interface Settings {
     mirostat_tau: number;
     mirostat_eta: number;
 }
-export type EndpointType = 'Kobold' | 'Ooba' | 'OAI' | 'Horde' | 'P-OAI' | 'P-Claude' | 'PaLM' | 'Aphrodite';
+export type EndpointType = 'Kobold' | 'Ooba' | 'OAI' | 'Horde' | 'P-OAI' | 'P-Claude' | 'PaLM' | 'Aphrodite' | 'TabbyAPI';
 
 export interface LLMConnectionInformation {
     endpoint: string, 

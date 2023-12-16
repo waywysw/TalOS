@@ -23,7 +23,7 @@ type ContextRatio = {
     construct: number;
 }
 type TokenType = 'LLaMA' | 'GPT';
-export type EndpointType = 'Kobold' | 'Ooba' | 'OAI' | 'Horde' | 'P-OAI' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'Aphrodite';
+export type EndpointType = 'Kobold' | 'Ooba' | 'TabbyAPI' | 'OAI' | 'Horde' | 'P-OAI' | 'P-Claude' | 'P-AWS-Claude' | 'PaLM' | 'Aphrodite';
 
 type OAI_Model = 'gpt-3.5-turbo-16k' | 'gpt-4' | 'gpt-3.5-turbo' | 'gpt-3.5-turbo-16k-0613' | 'gpt-3.5-turbo-0613' | 'gpt-3.5-turbo-0301' | 'gpt-4-0314' | 'gpt-4-0613';
 
@@ -362,6 +362,31 @@ export async function getStatus(testEndpoint?: string, testEndpointType?: string
                     return 'Ooba endpoint is not responding.';
                 }
                 break;
+            case 'TabbyAPI':
+                endpointURLObject = new URL(endpointUrl);
+                try {
+                    response = await axios.get(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}/v1/model`,
+                    {
+                        headers: {
+                            'x-api-key': password
+                        },
+                        cancelToken: connectionCancelTokenSource.token
+                    }
+                    ).then((response) => {
+                        return response;
+                    }).catch((error) => {
+                        console.log(error);
+                        throw error;
+                    });
+                    if (response) {
+                        return response.data.id;
+                    } else {
+                        return 'TabbyAPI endpoint is not responding.';
+                    }
+                } catch (error) {
+                    return `${error}`;
+                }
+                break;
             case 'OAI':
                 console.log('Fetching openai models');
                 try {
@@ -614,6 +639,51 @@ export const generateText = async (
                     results = response.data.choices[0].text;
                     return results = { results: [results], prompt: prompt };
                 }else{
+                    return results = { results: null, error: response.data, prompt: prompt};
+                }
+            } catch (error) {
+                throw error;
+            }
+        case "TabbyAPI":
+            console.log("TabbyAPI");
+            endpointURLObject = new URL(connection.endpoint);
+            prompt = prompt.toString().replace(/<br>/g, '').replace(/\\/g, "");
+            let tabbyPrompt = prompt.toString();
+            try {
+                const tabbyPayload = {
+                    'prompt': tabbyPrompt,
+                    'stream': false,
+                    'max_tokens': settings.max_length ? settings.max_length : 350,
+                    'temperature': settings.temperature ? settings.temperature : 0.9,
+                    'top_p': settings.top_p ? settings.top_p : 0.9,
+                    'typical_p': settings.typical ? settings.typical : 0.9,
+                    'tfs': settings.tfs ? settings.tfs : 0,
+                    'top_a': settings.top_a ? settings.top_a : 0,
+                    'repetition_penalty': settings.rep_pen ? settings.rep_pen : 1.0,
+                    'repetition_penalty_range': settings.rep_pen_range ? settings.rep_pen_range : 0,
+                    'top_k': settings.top_k ? settings.top_k : 0,
+                    'ban_eos_token': false,
+                    'stopping_strings': stops,
+                    'frequency_penalty': settings.frequency_penalty ? settings.frequency_penalty : 0,
+                    'presence_penalty': settings.presence_penalty ? settings.presence_penalty : 0,
+                    'mirostat_mode': settings.mirostat_mode ? settings.mirostat_mode : 0,
+                    'mirostat_tau': settings.mirostat_tau ? settings.mirostat_tau : 0.0,
+                    'mirostat_eta': settings.mirostat_eta ? settings.mirostat_eta : 0.0,
+                }
+                console.log(tabbyPayload)
+                cancelTokenSource = axios.CancelToken.source();
+                response = await axios.post(`${endpointURLObject.protocol}//${endpointURLObject.hostname}${endpointURLObject.port? `:${endpointURLObject.port}` : ''}/v1/completions`, tabbyPayload, 
+                { cancelToken: cancelTokenSource.token, headers: {
+                    'Content-Type': 'application/json',
+                    "x-api-key": password
+                }}).catch((error) => {
+                    console.log(error)
+                    throw error;
+                });
+                if (response?.status === 200) {
+                    results = response.data.choices[0].text;
+                    return results = { results: [results], prompt: prompt };
+                } else {
                     return results = { results: null, error: response.data, prompt: prompt};
                 }
             } catch (error) {

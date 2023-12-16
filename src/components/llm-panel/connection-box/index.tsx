@@ -13,7 +13,7 @@ const ConnectionBox = (props: ConnectionBoxProps) => {
     const [endpointType, setEndpointType] = useState<EndpointType>("Ooba");
     const [password, setPassword] = useState<string>("");
     const [status, setStatus] = useState<string>("Disconnected");
-    const endpointTypes = ["Kobold", "Ooba","Aphrodite", "OAI", "P-OAI", "P-Claude", "PaLM", "Horde", "P-AWS-Claude"]
+    const endpointTypes = ["Kobold", "Ooba", "Aphrodite", "TabbyAPI", "OAI", "P-OAI", "P-Claude", "PaLM", "Horde", "P-AWS-Claude"]
     const [currentConnectionPreset, setCurrentConnectionPreset] = useState<string>("");
     const [connectionPresets, setConnectionPresets] = useState<ConnectionPreset[]>([]);
     const [connectionPresetName, setConnectionPresetName] = useState<string>("");
@@ -213,7 +213,7 @@ const ConnectionBox = (props: ConnectionBoxProps) => {
                     onChange={(e) => setEndpoint(e.target.value)}
                 />
             </div>
-            {endpointType === "P-OAI" || endpointType === "P-Claude" || endpointType === "Aphrodite" || endpointType === "P-AWS-Claude"? (
+            {endpointType === "P-OAI" || endpointType === "P-Claude" || endpointType === "Aphrodite" || endpointType === "P-AWS-Claude" || endpointType === "TabbyAPI" ? (
                 <div className="flex flex-col w-full text-left">
                     <label className="text-theme-text text-shadow-xl font-semibold">Password</label>
                     <input className="themed-input w-full"
